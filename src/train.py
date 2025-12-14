@@ -15,7 +15,7 @@ from datetime import datetime
 def load_data(filepath):
     """Load dataset from CSV file"""
     print(f"Loading data from {filepath}...")
-    df = pd.read_data(filepath)
+    df = pd.read_csv(filepath)
     print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
     return df
 
