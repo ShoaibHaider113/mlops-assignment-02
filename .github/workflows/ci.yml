@@ -1,0 +1,107 @@
+name: MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    # Step 2: Set up Python
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    # Step 3: Cache dependencies
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    # Step 4: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # Step 5: Run linting with flake8
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: false
+    
+    # Step 6: Run unit tests with pytest
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --tb=short
+    
+    # Step 7: Generate test coverage report
+    - name: Generate coverage report
+      run: |
+        pytest tests/ --cov=src --cov-report=term-missing --cov-report=html
+    
+    # Step 8: Upload coverage report as artifact
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: htmlcov/
+    
+    # Step 9: Verify training script runs
+    - name: Verify training script execution
+      run: |
+        # Create sample dataset
+        python data/create_sample_dataset.py
+        # Run training script
+        python src/train.py
+        # Check if model was created
+        test -f models/model.pkl && echo "✓ Model created successfully" || exit 1
+    
+    # Step 10: Check model file exists
+    - name: Check model output
+      run: |
+        if [ -f models/model.pkl ]; then
+          echo "✓ Model file exists"
+          ls -lh models/model.pkl
+        else
+          echo "✗ Model file not found"
+          exit 1
+        fi
+
+  # Optional: Separate job for code quality checks
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint
+    
+    - name: Run pylint
+      run: |
+        pylint src/ --exit-zero --max-line-length=127
+      continue-on-error: true
