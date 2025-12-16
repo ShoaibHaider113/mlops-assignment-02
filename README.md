@@ -32,7 +32,7 @@ MLOps_Ass02/
 
 ### 1. Clone and Setup
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/ShoaibHaider113/mlops-assignment-02>
 cd MLOps_Ass02
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -76,8 +76,8 @@ docker run -p 8000:8000 mlops-api
 - **EC2 Public Endpoint**: [Your EC2 public IP]:8000
 
 ## Links
-- **GitHub Repository**: [Your GitHub repo]
-- **Docker Hub**: [Your Docker Hub repo]
+- **GitHub Repository**: [https://github.com/ShoaibHaider113/mlops-assignment-02]
+- **Docker Hub**: [(https://hub.docker.com/repositories/shab8)]
 
 ## Author
-[Your Name]
+[Muhammad Shoaib Haider]
